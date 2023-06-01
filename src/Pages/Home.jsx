@@ -19,10 +19,8 @@ function Home() {
     const [category, setCategory] = useState("INR")
     const [order, setOrder] = useState("market_cap_desc")
     const [page, setPage] = useState(1)
-    // console.log(order,page)
-    const navigate = useNavigate()
     const [data, setData] = useState([])
-    // https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false&locale=en
+  
     useEffect(() => {
         fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=${category}&order=${order}&per_page=10&page=${page}`)
             .then((res) => res.json())
