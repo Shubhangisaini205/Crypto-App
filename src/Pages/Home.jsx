@@ -1,4 +1,4 @@
-import { Box, Flex, Heading, Image, Text } from '@chakra-ui/react'
+import { Box, Button, Flex, Heading, Image, Select, Text } from '@chakra-ui/react'
 import React, { useEffect, useState } from 'react'
 import {
     Table,
@@ -13,19 +13,34 @@ import {
 } from '@chakra-ui/react'
 import { Link, useNavigate } from 'react-router-dom'
 function Home() {
+    const [category, setCategory] = useState("INR")
+    const [order, setOrder] = useState("market_cap_desc")
+    const [page, setPage] = useState(1)
+    // console.log(order,page)
     const navigate = useNavigate()
     const [data, setData] = useState([])
+    // https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false&locale=en
     useEffect(() => {
-        fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=INR")
+        fetch(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=${category}&order=${order}&per_page=10&page=${page}`)
             .then((res) => res.json())
             .then((res) => {
                 console.log(res)
                 setData(res)
             }).catch(err => console.log(err))
-    }, [])
-
+    }, [page])
+    ///api/v3/search?query=bitcoin
     return (
         <>
+            <Select width="200px" onClick={(e) => setOrder(e.target.value)}>
+                <option value="market_cap_asc">Low to high</option>
+                <option value="market_cap_desc">High to Low</option>
+            </Select>
+            <Select width="200px" onClick={(e) => setCategory(e.target.value)}>
+                <option value="INR">INR</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+            </Select>
+
             <Heading>Crypto Coin Dashboard</Heading>
             <TableContainer>
                 <Table variant='striped' colorScheme='teal'>
@@ -40,33 +55,37 @@ function Home() {
                     </Thead>
                     <Tbody>
                         {data?.map((item, i) => (
-                            <Tr key={item.id}>
 
-                                <Td onClick={()=>navigate(`/coin/${item.id}`)}>
-                                   
-                                        <Flex gap={5}>
-                                            <Image width="50px" src={item.image} />
-                                            <Box>
-                                                <Text fontWeight={"extrabold"} fontSize={"1rem"}>{item.symbol.toUpperCase()}</Text>
-                                                <Text>{item.name}</Text>
-                                            </Box>
-                                        </Flex>
-                                
+                            <Tr key={item.id} onClick={() => navigate(`/coin/${item.id}`)}>
+                                <Td >
+
+                                    <Flex gap={5}>
+                                        <Image width="50px" src={item.image} />
+                                        <Box>
+                                            <Text fontWeight={"extrabold"} fontSize={"1rem"}>{item.symbol.toUpperCase()}</Text>
+                                            <Text>{item.name}</Text>
+                                        </Box>
+                                    </Flex>
+
                                 </Td>
-
                                 <Td>{item.current_price
                                 }</Td>
-                                <Td>{item.price_change_24h.toFixed(2)
-                                }</Td>
+                                {/* <Td>{ item.price_change_24th!==0?item.price_change_24h.toFixed(2):item.price_change_24h
+                                    }</Td> */}
+                                <Td>{item.price_change_24h}</Td>
                                 <Td>{item.market_cap
                                 }</Td>
 
-
                             </Tr>
+
                         ))}
                     </Tbody>
                 </Table>
             </TableContainer>
+
+            {/* <Button isDisabled={page == 1} onClick={() => setPage(page - 1)}>Prev</Button>
+            <Button>{page}</Button>
+            <Button onClick={() => setPage(page + 1)}>Next</Button> */}
         </>
     )
 }
