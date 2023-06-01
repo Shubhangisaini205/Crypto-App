@@ -1,4 +1,4 @@
-import { Box, Button, Flex, Heading, Image, Select, Text } from '@chakra-ui/react'
+import { Box, Button, Flex, Heading, Image, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Text, useDisclosure } from '@chakra-ui/react'
 import React, { useEffect, useState } from 'react'
 import {
     Table,
@@ -13,6 +13,9 @@ import {
 } from '@chakra-ui/react'
 import { Link, useNavigate } from 'react-router-dom'
 function Home() {
+    const [query, setquery] = useState("")
+    const [sigleData, setSignleData] = useState({})
+    const { isOpen, onOpen, onClose } = useDisclosure()
     const [category, setCategory] = useState("INR")
     const [order, setOrder] = useState("market_cap_desc")
     const [page, setPage] = useState(1)
@@ -27,8 +30,23 @@ function Home() {
                 console.log(res)
                 setData(res)
             }).catch(err => console.log(err))
-    }, [page])
+
+    }, [page, order, category])
     ///api/v3/search?query=bitcoin
+
+    const handleModel = (id) => {
+        fetch(`https://api.coingecko.com/api/v3/coins/${id}`)
+            .then((res) => res.json())
+            .then(res => {
+                console.log(res)
+                setSignleData(res)
+            })
+        isOpen
+    }
+    if (sigleData.image != undefined) {
+        var { small } = sigleData.image
+        console.log(small)
+    }
     return (
         <>
             <Select width="200px" onClick={(e) => setOrder(e.target.value)}>
@@ -55,37 +73,63 @@ function Home() {
                     </Thead>
                     <Tbody>
                         {data?.map((item, i) => (
+                            <>
+                                <Tr onClick={() => handleModel(item.id)}  >
+                                    <Td onClick={onOpen}>
 
-                            <Tr key={item.id} onClick={() => navigate(`/coin/${item.id}`)}>
-                                <Td >
+                                        <Flex gap={5}>
+                                            <Image width="50px" src={item.image} />
+                                            <Box>
+                                                <Text fontWeight={"extrabold"} fontSize={"1rem"}>{item.symbol.toUpperCase()}</Text>
+                                                <Text>{item.name}</Text>
+                                            </Box>
+                                        </Flex>
 
-                                    <Flex gap={5}>
-                                        <Image width="50px" src={item.image} />
-                                        <Box>
-                                            <Text fontWeight={"extrabold"} fontSize={"1rem"}>{item.symbol.toUpperCase()}</Text>
-                                            <Text>{item.name}</Text>
-                                        </Box>
-                                    </Flex>
+                                    </Td>
+                                    <Td>{item.current_price
+                                    }</Td>
+                                    <Td>{item.price_change_24th !== 0 ? item.price_change_24h.toFixed(2) : item.price_change_24h
+                                    }</Td>
+                                    {/* <Td>{item.price_change_24h}</Td> */}
+                                    <Td>{item.market_cap
+                                    }</Td>
 
-                                </Td>
-                                <Td>{item.current_price
-                                }</Td>
-                                {/* <Td>{ item.price_change_24th!==0?item.price_change_24h.toFixed(2):item.price_change_24h
-                                    }</Td> */}
-                                <Td>{item.price_change_24h}</Td>
-                                <Td>{item.market_cap
-                                }</Td>
+                                </Tr>
+                                <Modal isOpen={isOpen} onClose={onClose}>
+                                    <ModalOverlay />
+                                    <ModalContent>
+                                        <ModalHeader>Details of the Coin </ModalHeader>
+                                        <ModalCloseButton />
+                                        <ModalBody>
+                                            <Heading>{sigleData.name}</Heading>
+                                            <Heading>Market Cap Rank: {sigleData.market_cap_rank}</Heading>
+                                            <Image width="50px" src={small} />
+                                            <Text>Name: {sigleData.name}</Text>
+                                            <Text>Symbol:{sigleData.symbol}</Text>
+                                            <Text>Last updated:{sigleData.last_updated
+                                            }</Text>
+                                            <Text>Price Change 24hour: {sigleData.price_change_24h
+                                            }</Text>
+                                        </ModalBody>
 
-                            </Tr>
+                                        <ModalFooter>
+                                            <Button colorScheme='teal' mr={3} onClick={onClose}>
+                                                Close
+                                            </Button>
+
+                                        </ModalFooter>
+                                    </ModalContent>
+                                </Modal>
+                            </>
 
                         ))}
                     </Tbody>
                 </Table>
             </TableContainer>
 
-            {/* <Button isDisabled={page == 1} onClick={() => setPage(page - 1)}>Prev</Button>
+            <Button isDisabled={page == 1} onClick={() => setPage(page - 1)}>Prev</Button>
             <Button>{page}</Button>
-            <Button onClick={() => setPage(page + 1)}>Next</Button> */}
+            <Button onClick={() => setPage(page + 1)}>Next</Button>
         </>
     )
 }
